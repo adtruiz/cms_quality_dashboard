@@ -274,7 +274,7 @@ export default function DemoPage() {
                       {[...Array(5)].map((_, i) => (
                         <span
                           key={i}
-                          className={`text-4xl ${i < selectedFacility.overall_rating ? 'text-amber-400' : 'text-gray-700'}`}
+                          className={`text-4xl ${i < (selectedFacility.overall_rating || 0) ? 'text-amber-400' : 'text-gray-700'}`}
                         >
                           ★
                         </span>
