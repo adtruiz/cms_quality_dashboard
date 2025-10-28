@@ -274,10 +274,15 @@ export default function DemoPage() {
                       const height = (point.overall_rating / 5) * 100;
                       return (
                         <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                          <div
-                            className="w-full bg-gradient-to-t from-[#667eea] to-[#764ba2] rounded-t-lg transition-all hover:opacity-80"
-                            style={{ height: `${height}%` }}
-                          />
+                          <div className="flex flex-col items-center justify-end h-full">
+                            <div className="text-xs font-bold text-white mb-1">
+                              {point.overall_rating || 'N/A'}
+                            </div>
+                            <div
+                              className="w-full bg-gradient-to-t from-[#667eea] to-[#764ba2] rounded-t-lg transition-all hover:opacity-80 min-h-[8px]"
+                              style={{ height: `${height}%` }}
+                            />
+                          </div>
                           <div className="text-xs text-gray-500 text-center">
                             {new Date(point.quarter + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
                           </div>
