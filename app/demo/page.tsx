@@ -263,37 +263,76 @@ export default function DemoPage() {
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Historical Trend Chart */}
-            <div className="card p-6">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <span>📈</span> Rating Trend (Historical)
+            <div className="card p-6 lg:col-span-2">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <span>📈</span> Rating Trend Over Time
               </h3>
               {historicalData.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="h-48 flex items-end justify-between gap-2">
-                    {historicalData.slice(-8).map((point, idx) => {
-                      const height = (point.overall_rating / 5) * 100;
-                      return (
-                        <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-                          <div className="flex flex-col items-center justify-end h-full">
-                            <div className="text-xs font-bold text-white mb-1">
-                              {point.overall_rating || 'N/A'}
-                            </div>
-                            <div
-                              className="w-full bg-gradient-to-t from-[#667eea] to-[#764ba2] rounded-t-lg transition-all hover:opacity-80 min-h-[8px]"
-                              style={{ height: `${height}%` }}
+                <div className="space-y-4">
+                  <div className="relative h-80">
+                    <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet">
+                      {/* Grid lines */}
+                      {[1, 2, 3, 4, 5].map((val) => {
+                        const y = 250 - ((val - 1) / 4) * 200;
+                        return (
+                          <g key={val}>
+                            <line
+                              x1="50"
+                              y1={y}
+                              x2="780"
+                              y2={y}
+                              stroke="rgba(255,255,255,0.1)"
+                              strokeWidth="1"
                             />
-                          </div>
-                          <div className="text-xs text-gray-500 text-center">
-                            {new Date(point.quarter + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
-                          </div>
-                        </div>
-                      );
-                    })}
+                            <text x="20" y={y + 5} fill="#9ca3af" fontSize="14">
+                              {val}★
+                            </text>
+                          </g>
+                        );
+                      })}
+
+                      {/* Line path */}
+                      <path
+                        d={historicalData.slice(-10).map((point, idx) => {
+                          const x = 50 + (idx / (historicalData.slice(-10).length - 1)) * 730;
+                          const y = 250 - ((point.overall_rating - 1) / 4) * 200;
+                          return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
+                        }).join(' ')}
+                        fill="none"
+                        stroke="url(#lineGradient)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+
+                      {/* Data points */}
+                      {historicalData.slice(-10).map((point, idx) => {
+                        const x = 50 + (idx / (historicalData.slice(-10).length - 1)) * 730;
+                        const y = 250 - ((point.overall_rating - 1) / 4) * 200;
+                        return (
+                          <g key={idx}>
+                            <circle cx={x} cy={y} r="5" fill="#667eea" stroke="#fff" strokeWidth="2" />
+                            <text x={x} y={280} fill="#9ca3af" fontSize="12" textAnchor="middle">
+                              {new Date(point.quarter + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
+                            </text>
+                          </g>
+                        );
+                      })}
+
+                      {/* Gradient definition */}
+                      <defs>
+                        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#667eea" />
+                          <stop offset="100%" stopColor="#764ba2" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
                   </div>
-                  <div className="pt-4 border-t border-white/10">
+                  <div className="pt-4 border-t border-white/10 flex justify-between">
                     <div className="text-sm text-gray-400">
                       Latest: <span className="text-white font-bold">{historicalData[historicalData.length - 1]?.overall_rating} stars</span>
-                      {' • '}
+                    </div>
+                    <div className="text-sm text-gray-400">
                       {historicalData.length} data points
                     </div>
                   </div>
