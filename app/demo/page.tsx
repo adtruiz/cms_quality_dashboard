@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
 interface Facility {
@@ -18,32 +18,53 @@ interface HistoricalData {
 }
 
 export default function DemoPage() {
-  const [searchState, setSearchState] = useState('CA');
+  const [searchState, setSearchState] = useState('UT');
   const [searchName, setSearchName] = useState('');
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const searchFacilities = async () => {
+  const searchFacilities = useCallback(async (state: string, name: string) => {
+    // Don't search if both are empty
+    if (!state && !name) {
+      setFacilities([]);
+      return;
+    }
+
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (searchState) params.append('state', searchState);
-      if (searchName) params.append('name', searchName);
-      params.append('limit', '20');
+      if (state) params.append('state', state);
+      if (name) params.append('name', name);
+      params.append('limit', '50');
 
       const res = await fetch(`https://api.healthcaredata.io/hospitals?${params}`);
       const data = await res.json();
       setFacilities(data.results || []);
+      setShowSuggestions(true);
     } catch (error) {
       console.error('Error searching facilities:', error);
+      setFacilities([]);
     }
     setLoading(false);
-  };
+  }, []);
+
+  // Debounced search - trigger search as user types
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchState || searchName) {
+        searchFacilities(searchState, searchName);
+      }
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [searchState, searchName, searchFacilities]);
 
   const selectFacility = async (facility: Facility) => {
     setSelectedFacility(facility);
+    setShowSuggestions(false);
     setLoading(true);
 
     try {
@@ -59,6 +80,12 @@ export default function DemoPage() {
     }
 
     setLoading(false);
+  };
+
+  const clearSelection = () => {
+    setSelectedFacility(null);
+    setHistoricalData([]);
+    setShowSuggestions(true);
   };
 
   const getDomainScore = (rating: number) => {
@@ -86,58 +113,74 @@ export default function DemoPage() {
       {/* Search Section */}
       <div className="card p-6 mb-8">
         <h2 className="text-xl font-bold text-white mb-4">🔍 Search Facilities</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <p className="text-gray-400 text-sm mb-4">
+          Type to search - results appear automatically
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="text-gray-400 text-sm mb-2 block">State</label>
+            <label className="text-gray-400 text-sm mb-2 block">State (2-letter code)</label>
             <input
               type="text"
               value={searchState}
               onChange={(e) => setSearchState(e.target.value.toUpperCase())}
-              placeholder="CA"
+              onFocus={() => setShowSuggestions(true)}
+              placeholder="UT, CA, TX, NY..."
               className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#667eea] focus:outline-none"
               maxLength={2}
             />
           </div>
           <div>
-            <label className="text-gray-400 text-sm mb-2 block">Facility Name</label>
-            <input
-              type="text"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              placeholder="Search by name..."
-              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#667eea] focus:outline-none"
-            />
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={searchFacilities}
-              disabled={loading}
-              className="w-full px-6 py-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {loading ? 'Searching...' : 'Search'}
-            </button>
+            <label className="text-gray-400 text-sm mb-2 block">Facility Name (partial match)</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="e.g., Lakeview, Memorial, St. Mary..."
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#667eea] focus:outline-none"
+              />
+              {loading && (
+                <div className="absolute right-3 top-3 text-gray-400 text-sm">
+                  Searching...
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Results */}
-        {facilities.length > 0 && (
-          <div className="mt-6">
-            <p className="text-gray-400 text-sm mb-3">Found {facilities.length} facilities</p>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+        {/* Suggestions Dropdown */}
+        {showSuggestions && facilities.length > 0 && !selectedFacility && (
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-3">
+              <p className="text-gray-400 text-sm">
+                Found {facilities.length} facilities - click to view details
+              </p>
+              <button
+                onClick={() => setShowSuggestions(false)}
+                className="text-gray-500 hover:text-white text-sm"
+              >
+                Hide
+              </button>
+            </div>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
               {facilities.map((facility) => (
                 <div
                   key={facility.ccn}
-                  onClick={() => selectFacility(facility)}
-                  className="p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 cursor-pointer transition-colors"
+                  onClick={() => {
+                    selectFacility(facility);
+                    setShowSuggestions(false);
+                  }}
+                  className="p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 cursor-pointer transition-colors"
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="text-white font-medium">{facility.name}</div>
-                      <div className="text-gray-500 text-sm">
+                      <div className="text-gray-500 text-sm mt-1">
                         {facility.city}, {facility.state} • CCN: {facility.ccn}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0 ml-4">
                       {[...Array(5)].map((_, i) => (
                         <span
                           key={i}
@@ -153,15 +196,30 @@ export default function DemoPage() {
             </div>
           </div>
         )}
+
+        {/* No Results Message */}
+        {!loading && facilities.length === 0 && (searchState || searchName) && (
+          <div className="mt-4 text-center py-8 text-gray-500">
+            No facilities found. Try a different search term.
+          </div>
+        )}
       </div>
 
       {/* Selected Facility Analytics */}
       {selectedFacility && (
         <div className="space-y-6">
+          {/* Search Again Button */}
+          <button
+            onClick={clearSelection}
+            className="card px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors"
+          >
+            ← Search Again
+          </button>
+
           {/* Facility Header */}
           <div className="card p-6">
             <div className="flex justify-between items-start mb-4">
-              <div>
+              <div className="flex-1">
                 <h2 className="text-2xl font-bold text-white mb-1">
                   {selectedFacility.name}
                 </h2>
@@ -169,7 +227,7 @@ export default function DemoPage() {
                   {selectedFacility.city}, {selectedFacility.state} • CCN: {selectedFacility.ccn}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0 ml-4">
                 <div className="text-5xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
                   {selectedFacility.overall_rating}
                 </div>
