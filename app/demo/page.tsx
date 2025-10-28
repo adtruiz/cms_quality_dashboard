@@ -240,8 +240,15 @@ export default function DemoPage() {
                 </p>
               </div>
               <div className="text-right flex-shrink-0 ml-4">
-                <div className="text-5xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
-                  {selectedFacility.overall_rating}
+                <div className="flex gap-1 justify-end mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={`text-4xl ${i < selectedFacility.overall_rating ? 'text-amber-400' : 'text-gray-700'}`}
+                    >
+                      ★
+                    </span>
+                  ))}
                 </div>
                 <div className="text-gray-400 text-sm">Overall Rating</div>
               </div>
