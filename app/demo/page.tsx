@@ -302,10 +302,26 @@ export default function DemoPage() {
               {historicalData.length > 0 ? (
                 <div className="space-y-4">
                   <div className="relative h-80">
-                    <svg className="w-full h-full" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet">
-                      {/* Grid lines - now includes 0 */}
-                      {[0, 1, 2, 3, 4, 5].map((val) => {
-                        const y = 250 - (val / 5) * 200;
+                    <svg className="w-full h-full" viewBox="0 0 800 340" preserveAspectRatio="xMidYMid meet">
+                      {/* Grid lines - "Not Available" and 1-5 stars */}
+                      {/* Not Available line */}
+                      <g>
+                        <line
+                          x1="50"
+                          y1={270}
+                          x2="780"
+                          y2={270}
+                          stroke="rgba(255,255,255,0.1)"
+                          strokeWidth="1"
+                        />
+                        <text x="10" y={275} fill="#9ca3af" fontSize="11" textAnchor="start">
+                          N/A
+                        </text>
+                      </g>
+
+                      {/* Star rating lines (1-5) */}
+                      {[1, 2, 3, 4, 5].map((val) => {
+                        const y = 230 - ((val - 1) / 4) * 180;
                         return (
                           <g key={val}>
                             <line
@@ -330,7 +346,11 @@ export default function DemoPage() {
                           if (data.length < 2) return '';
                           return data.map((point, idx) => {
                             const x = 50 + (idx / (data.length - 1)) * 730;
-                            const y = 250 - (point.overall_rating / 5) * 200;
+                            // If rating is null or 0, plot at "Not Available" level (y=270)
+                            // Otherwise plot at star level
+                            const y = (!point.overall_rating || point.overall_rating === 0)
+                              ? 270
+                              : 230 - ((point.overall_rating - 1) / 4) * 180;
                             return `${idx === 0 ? 'M' : 'L'} ${x},${y}`;
                           }).join(' ');
                         })()}
@@ -344,11 +364,14 @@ export default function DemoPage() {
                       {/* Data points */}
                       {historicalData.slice(-10).map((point, idx) => {
                         const x = 50 + (idx / (historicalData.slice(-10).length - 1)) * 730;
-                        const y = 250 - (point.overall_rating / 5) * 200;
+                        // If rating is null or 0, plot at "Not Available" level
+                        const y = (!point.overall_rating || point.overall_rating === 0)
+                          ? 270
+                          : 230 - ((point.overall_rating - 1) / 4) * 180;
                         return (
                           <g key={idx}>
                             <circle cx={x} cy={y} r="5" fill="#667eea" stroke="#fff" strokeWidth="2" />
-                            <text x={x} y={270} fill="#9ca3af" fontSize="12" textAnchor="middle">
+                            <text x={x} y={290} fill="#9ca3af" fontSize="12" textAnchor="middle">
                               {new Date(point.quarter + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
                             </text>
                           </g>
