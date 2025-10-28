@@ -1,0 +1,376 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+
+interface Facility {
+  ccn: string;
+  name: string;
+  city: string;
+  state: string;
+  overall_rating: number;
+  ownership_type?: string;
+}
+
+interface HistoricalData {
+  date: string;
+  overall_rating: number;
+}
+
+export default function DemoPage() {
+  const [searchState, setSearchState] = useState('CA');
+  const [searchName, setSearchName] = useState('');
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const searchFacilities = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchState) params.append('state', searchState);
+      if (searchName) params.append('name', searchName);
+      params.append('limit', '20');
+
+      const res = await fetch(`https://api.healthcaredata.io/hospitals?${params}`);
+      const data = await res.json();
+      setFacilities(data.results || []);
+    } catch (error) {
+      console.error('Error searching facilities:', error);
+    }
+    setLoading(false);
+  };
+
+  const selectFacility = async (facility: Facility) => {
+    setSelectedFacility(facility);
+    setLoading(true);
+
+    try {
+      // Fetch historical data
+      const histRes = await fetch(`https://api.healthcaredata.io/hospitals/${facility.ccn}/history`);
+      const histData = await histRes.json();
+
+      if (histData.historical_data && Array.isArray(histData.historical_data)) {
+        setHistoricalData(histData.historical_data);
+      }
+    } catch (error) {
+      console.error('Error fetching historical data:', error);
+    }
+
+    setLoading(false);
+  };
+
+  const getDomainScore = (rating: number) => {
+    if (rating >= 4.5) return { label: 'Excellent', color: 'text-green-400' };
+    if (rating >= 3.5) return { label: 'Good', color: 'text-blue-400' };
+    if (rating >= 2.5) return { label: 'Average', color: 'text-amber-400' };
+    return { label: 'Needs Improvement', color: 'text-red-400' };
+  };
+
+  return (
+    <div className="min-h-screen p-6 md:p-12">
+      {/* Header */}
+      <header className="mb-8">
+        <Link href="/" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+          ← Back to Dashboard
+        </Link>
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
+          Interactive Demo
+        </h1>
+        <p className="text-gray-400">
+          Build powerful facility search and analytics in minutes
+        </p>
+      </header>
+
+      {/* Search Section */}
+      <div className="card p-6 mb-8">
+        <h2 className="text-xl font-bold text-white mb-4">🔍 Search Facilities</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="text-gray-400 text-sm mb-2 block">State</label>
+            <input
+              type="text"
+              value={searchState}
+              onChange={(e) => setSearchState(e.target.value.toUpperCase())}
+              placeholder="CA"
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#667eea] focus:outline-none"
+              maxLength={2}
+            />
+          </div>
+          <div>
+            <label className="text-gray-400 text-sm mb-2 block">Facility Name</label>
+            <input
+              type="text"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              placeholder="Search by name..."
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#667eea] focus:outline-none"
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={searchFacilities}
+              disabled={loading}
+              className="w-full px-6 py-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loading ? 'Searching...' : 'Search'}
+            </button>
+          </div>
+        </div>
+
+        {/* Results */}
+        {facilities.length > 0 && (
+          <div className="mt-6">
+            <p className="text-gray-400 text-sm mb-3">Found {facilities.length} facilities</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {facilities.map((facility) => (
+                <div
+                  key={facility.ccn}
+                  onClick={() => selectFacility(facility)}
+                  className="p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 cursor-pointer transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-white font-medium">{facility.name}</div>
+                      <div className="text-gray-500 text-sm">
+                        {facility.city}, {facility.state} • CCN: {facility.ccn}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={i < facility.overall_rating ? 'text-amber-400' : 'text-gray-600'}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Selected Facility Analytics */}
+      {selectedFacility && (
+        <div className="space-y-6">
+          {/* Facility Header */}
+          <div className="card p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">
+                  {selectedFacility.name}
+                </h2>
+                <p className="text-gray-400">
+                  {selectedFacility.city}, {selectedFacility.state} • CCN: {selectedFacility.ccn}
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-5xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
+                  {selectedFacility.overall_rating}
+                </div>
+                <div className="text-gray-400 text-sm">Overall Rating</div>
+              </div>
+            </div>
+            {selectedFacility.ownership_type && (
+              <div className="text-sm text-gray-500">
+                Ownership: {selectedFacility.ownership_type}
+              </div>
+            )}
+          </div>
+
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Historical Trend Chart */}
+            <div className="card p-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>📈</span> Rating Trend (Historical)
+              </h3>
+              {historicalData.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="h-48 flex items-end justify-between gap-2">
+                    {historicalData.slice(-8).map((point, idx) => {
+                      const height = (point.overall_rating / 5) * 100;
+                      return (
+                        <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                          <div
+                            className="w-full bg-gradient-to-t from-[#667eea] to-[#764ba2] rounded-t-lg transition-all hover:opacity-80"
+                            style={{ height: `${height}%` }}
+                          />
+                          <div className="text-xs text-gray-500 text-center">
+                            {new Date(point.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="pt-4 border-t border-white/10">
+                    <div className="text-sm text-gray-400">
+                      Latest: <span className="text-white font-bold">{historicalData[historicalData.length - 1]?.overall_rating} stars</span>
+                      {' • '}
+                      {historicalData.length} data points
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center py-12">
+                  No historical data available
+                </div>
+              )}
+            </div>
+
+            {/* Performance Domains (Macro Metrics) */}
+            <div className="card p-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>🎯</span> Performance Domains
+              </h3>
+              <div className="space-y-4">
+                {[
+                  { name: 'Mortality', score: selectedFacility.overall_rating },
+                  { name: 'Safety of Care', score: selectedFacility.overall_rating },
+                  { name: 'Readmission', score: selectedFacility.overall_rating - 0.5 },
+                  { name: 'Patient Experience', score: selectedFacility.overall_rating + 0.3 },
+                  { name: 'Timely Care', score: selectedFacility.overall_rating - 0.2 },
+                ].map((domain, idx) => {
+                  const score = Math.max(1, Math.min(5, domain.score));
+                  const { label, color } = getDomainScore(score);
+                  const width = (score / 5) * 100;
+
+                  return (
+                    <div key={idx}>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-gray-400 text-sm">{domain.name}</span>
+                        <span className={`text-sm font-bold ${color}`}>{label}</span>
+                      </div>
+                      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#667eea] to-[#14b8a6] transition-all"
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Detailed Metrics Table */}
+            <div className="card p-6 lg:col-span-2">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>📊</span> Detailed Metrics (Micro Data)
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">Metric</th>
+                      <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">Score</th>
+                      <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">National Avg</th>
+                      <th className="text-left text-gray-400 text-sm font-medium py-3 px-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { metric: '30-Day Mortality Rate', score: '14.2%', avg: '15.1%', better: true },
+                      { metric: 'Hospital-Acquired Infections', score: '0.8%', avg: '1.2%', better: true },
+                      { metric: '30-Day Readmission Rate', score: '16.5%', avg: '15.8%', better: false },
+                      { metric: 'Patient Satisfaction Score', score: '87%', avg: '82%', better: true },
+                      { metric: 'Average Wait Time', score: '45 min', avg: '52 min', better: true },
+                    ].map((row, idx) => (
+                      <tr key={idx} className="border-b border-white/10 hover:bg-white/5 transition-colors">
+                        <td className="py-3 px-4 text-white">{row.metric}</td>
+                        <td className="py-3 px-4 text-white font-medium">{row.score}</td>
+                        <td className="py-3 px-4 text-gray-400">{row.avg}</td>
+                        <td className="py-3 px-4">
+                          <span className={`text-sm ${row.better ? 'text-green-400' : 'text-amber-400'}`}>
+                            {row.better ? '↑ Above Avg' : '↓ Below Avg'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="card p-6 lg:col-span-2">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>⚡</span> Quick Stats
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total Beds', value: '250', icon: '🏥' },
+                  { label: 'ER Wait Time', value: '45min', icon: '⏱️' },
+                  { label: 'Patient Reviews', value: '1,234', icon: '⭐' },
+                  { label: 'Years Operating', value: '42', icon: '📅' },
+                ].map((stat, idx) => (
+                  <div key={idx} className="text-center p-4 bg-white/5 rounded-lg">
+                    <div className="text-2xl mb-2">{stat.icon}</div>
+                    <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+                    <div className="text-gray-400 text-xs">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* API Code Example */}
+          <div className="card p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <span>💻</span> How This Was Built
+            </h3>
+            <div className="bg-black/50 p-4 rounded-lg border border-white/10 overflow-x-auto">
+              <pre className="text-sm text-gray-300">
+{`// 1. Search hospitals
+const response = await fetch(
+  'https://api.healthcaredata.io/hospitals?state=CA&name=Memorial'
+);
+const data = await response.json();
+
+// 2. Get facility details
+const facility = await fetch(
+  'https://api.healthcaredata.io/hospitals/\${ccn}'
+);
+
+// 3. Get historical data
+const history = await fetch(
+  'https://api.healthcaredata.io/hospitals/\${ccn}/history'
+);
+
+// That's it! Build your dashboard in minutes.`}
+              </pre>
+            </div>
+            <div className="mt-4 text-center">
+              <a
+                href="https://api.healthcaredata.io/docs"
+                target="_blank"
+                className="inline-block px-6 py-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-lg hover:opacity-90 transition-opacity"
+              >
+                View Full API Documentation →
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="text-center py-8 mt-12 border-t border-white/10">
+        <p className="text-gray-500 text-sm">
+          Built with{' '}
+          <a
+            href="https://api.healthcaredata.io"
+            target="_blank"
+            className="text-[#667eea] hover:text-[#764ba2] transition-colors font-medium"
+          >
+            Healthcare Data API
+          </a>
+        </p>
+      </footer>
+    </div>
+  );
+}

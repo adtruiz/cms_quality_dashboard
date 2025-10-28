@@ -92,13 +92,21 @@ export default function Dashboard() {
               Live Medicare star ratings and quality data
             </p>
           </div>
-          <a
-            href="https://api.healthcaredata.io"
-            target="_blank"
-            className="card px-6 py-3 text-sm hover:scale-105 transition-transform"
-          >
-            API Documentation →
-          </a>
+          <div className="flex gap-3">
+            <a
+              href="/demo"
+              className="card px-6 py-3 text-sm hover:scale-105 transition-transform bg-gradient-to-r from-[#667eea] to-[#764ba2]"
+            >
+              Try Interactive Demo →
+            </a>
+            <a
+              href="https://api.healthcaredata.io"
+              target="_blank"
+              className="card px-6 py-3 text-sm hover:scale-105 transition-transform"
+            >
+              API Documentation
+            </a>
+          </div>
         </div>
         <div className="h-1 w-full bg-gradient-to-r from-[#667eea] via-[#14b8a6] to-[#764ba2] rounded-full opacity-50"></div>
       </header>
