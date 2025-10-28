@@ -272,7 +272,7 @@ export default function DemoPage() {
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Historical Trend Chart */}
-            <div className="card p-6 lg:col-span-2">
+            <div className="card p-6">
               <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                 <span>📈</span> Rating Trend Over Time
               </h3>
@@ -302,13 +302,17 @@ export default function DemoPage() {
 
                       {/* Line path */}
                       <path
-                        d={historicalData.slice(-10).map((point, idx) => {
-                          const x = 50 + (idx / (historicalData.slice(-10).length - 1)) * 730;
-                          const y = 250 - ((point.overall_rating - 1) / 4) * 200;
-                          return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
-                        }).join(' ')}
+                        d={(() => {
+                          const data = historicalData.slice(-10);
+                          if (data.length < 2) return '';
+                          return data.map((point, idx) => {
+                            const x = 50 + (idx / (data.length - 1)) * 730;
+                            const y = 250 - ((point.overall_rating - 1) / 4) * 200;
+                            return `${idx === 0 ? 'M' : 'L'} ${x},${y}`;
+                          }).join(' ');
+                        })()}
                         fill="none"
-                        stroke="url(#lineGradient)"
+                        stroke="#667eea"
                         strokeWidth="3"
                         strokeLinecap="round"
                         strokeLinejoin="round"

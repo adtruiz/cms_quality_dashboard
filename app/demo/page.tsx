@@ -111,15 +111,24 @@ export default function DemoPage() {
     <div className="min-h-screen p-6 md:p-12">
       {/* Header */}
       <header className="mb-8">
-        <Link href="/" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
-          ← Back to Dashboard
-        </Link>
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
-          Interactive Demo
-        </h1>
-        <p className="text-gray-400">
-          Build powerful facility search and analytics in minutes
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
+              Healthcare Quality Dashboard
+            </h1>
+            <p className="text-gray-400">
+              Search Medicare star ratings for 48,000+ healthcare facilities
+            </p>
+          </div>
+          <a
+            href="https://api.healthcaredata.io/signup"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card px-6 py-3 text-sm hover:scale-105 transition-transform bg-gradient-to-r from-[#667eea] to-[#764ba2]"
+          >
+            Get API Key →
+          </a>
+        </div>
       </header>
 
       {/* Search Section */}
@@ -263,7 +272,7 @@ export default function DemoPage() {
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Historical Trend Chart */}
-            <div className="card p-6 lg:col-span-2">
+            <div className="card p-6">
               <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                 <span>📈</span> Rating Trend Over Time
               </h3>
@@ -293,13 +302,17 @@ export default function DemoPage() {
 
                       {/* Line path */}
                       <path
-                        d={historicalData.slice(-10).map((point, idx) => {
-                          const x = 50 + (idx / (historicalData.slice(-10).length - 1)) * 730;
-                          const y = 250 - ((point.overall_rating - 1) / 4) * 200;
-                          return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
-                        }).join(' ')}
+                        d={(() => {
+                          const data = historicalData.slice(-10);
+                          if (data.length < 2) return '';
+                          return data.map((point, idx) => {
+                            const x = 50 + (idx / (data.length - 1)) * 730;
+                            const y = 250 - ((point.overall_rating - 1) / 4) * 200;
+                            return `${idx === 0 ? 'M' : 'L'} ${x},${y}`;
+                          }).join(' ');
+                        })()}
                         fill="none"
-                        stroke="url(#lineGradient)"
+                        stroke="#667eea"
                         strokeWidth="3"
                         strokeLinecap="round"
                         strokeLinejoin="round"
