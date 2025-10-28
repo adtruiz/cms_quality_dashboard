@@ -272,7 +272,7 @@ export default function DemoPage() {
                             style={{ height: `${height}%` }}
                           />
                           <div className="text-xs text-gray-500 text-center">
-                            {new Date(point.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
+                            {new Date(point.quarter + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
                           </div>
                         </div>
                       );
