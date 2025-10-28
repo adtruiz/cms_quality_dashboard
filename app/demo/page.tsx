@@ -8,7 +8,7 @@ interface Facility {
   name: string;
   city: string;
   state: string;
-  overall_rating: number;
+  overall_rating: number | null;
   ownership_type?: string;
 }
 
@@ -202,14 +202,18 @@ export default function DemoPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0 ml-4">
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={i < facility.overall_rating ? 'text-amber-400' : 'text-gray-600'}
-                        >
-                          ★
-                        </span>
-                      ))}
+                      {facility.overall_rating === null || facility.overall_rating === 0 ? (
+                        <span className="text-gray-500 text-xs">Not Available</span>
+                      ) : (
+                        [...Array(5)].map((_, i) => (
+                          <span
+                            key={i}
+                            className={i < facility.overall_rating ? 'text-amber-400' : 'text-gray-600'}
+                          >
+                            ★
+                          </span>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -249,17 +253,27 @@ export default function DemoPage() {
                 </p>
               </div>
               <div className="text-right flex-shrink-0 ml-4">
-                <div className="flex gap-1 justify-end mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-4xl ${i < selectedFacility.overall_rating ? 'text-amber-400' : 'text-gray-700'}`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <div className="text-gray-400 text-sm">Overall Rating</div>
+                {selectedFacility.overall_rating === null || selectedFacility.overall_rating === 0 ? (
+                  <div>
+                    <div className="text-2xl font-bold text-gray-500 mb-2">Not Available</div>
+                    <div className="text-gray-400 text-sm">Overall Rating</div>
+                    <div className="text-gray-600 text-xs mt-1">Insufficient data</div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex gap-1 justify-end mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className={`text-4xl ${i < selectedFacility.overall_rating ? 'text-amber-400' : 'text-gray-700'}`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-gray-400 text-sm">Overall Rating</div>
+                  </>
+                )}
               </div>
             </div>
             {selectedFacility.ownership_type && (
