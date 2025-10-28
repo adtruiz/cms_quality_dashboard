@@ -203,7 +203,12 @@ export default function DemoPage() {
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0 ml-4">
                       {facility.overall_rating === null || facility.overall_rating === 0 ? (
-                        <span className="text-gray-500 text-xs">Not Available</span>
+                        <span className="text-gray-500 text-xs group relative cursor-help">
+                          Not Available*
+                          <span className="invisible group-hover:visible absolute right-0 top-6 w-48 bg-gray-900 text-white text-xs rounded p-2 z-10">
+                            Insufficient data for CMS to calculate star rating
+                          </span>
+                        </span>
                       ) : (
                         [...Array(5)].map((_, i) => (
                           <span
@@ -255,9 +260,13 @@ export default function DemoPage() {
               <div className="text-right flex-shrink-0 ml-4">
                 {selectedFacility.overall_rating === null || selectedFacility.overall_rating === 0 ? (
                   <div>
-                    <div className="text-2xl font-bold text-gray-500 mb-2">Not Available</div>
+                    <div className="text-2xl font-bold text-gray-500 mb-2 group relative cursor-help inline-block">
+                      Not Available*
+                      <span className="invisible group-hover:visible absolute right-0 top-8 w-64 bg-gray-900 text-white text-xs rounded p-3 z-10">
+                        Insufficient data for CMS to calculate star rating. This may be due to low patient volume, recent opening, or incomplete reporting.
+                      </span>
+                    </div>
                     <div className="text-gray-400 text-sm">Overall Rating</div>
-                    <div className="text-gray-600 text-xs mt-1">Insufficient data</div>
                   </div>
                 ) : (
                   <>
