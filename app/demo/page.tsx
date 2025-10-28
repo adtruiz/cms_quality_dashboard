@@ -84,8 +84,8 @@ export default function DemoPage() {
       });
       const histData = await histRes.json();
 
-      if (histData.historical_data && Array.isArray(histData.historical_data)) {
-        setHistoricalData(histData.historical_data);
+      if (histData.history && Array.isArray(histData.history)) {
+        setHistoricalData(histData.history);
       }
     } catch (error) {
       console.error('Error fetching historical data:', error);
