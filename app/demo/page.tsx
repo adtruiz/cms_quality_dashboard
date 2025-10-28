@@ -17,6 +17,10 @@ interface HistoricalData {
   overall_rating: number;
 }
 
+// Demo API key - visible in code, for demo purposes only
+// Sign up at https://api.healthcaredata.io/signup for your own key
+const DEMO_API_KEY = 'cms_Uy_2OZd9ObgcwSk-hlcVPffMwMAfm_GTbSq9ghHhZe8';
+
 export default function DemoPage() {
   const [searchState, setSearchState] = useState('UT');
   const [searchName, setSearchName] = useState('');
@@ -40,7 +44,11 @@ export default function DemoPage() {
       if (name) params.append('name', name);
       params.append('limit', '50');
 
-      const res = await fetch(`https://api.healthcaredata.io/hospitals?${params}`);
+      const res = await fetch(`https://api.healthcaredata.io/hospitals?${params}`, {
+        headers: {
+          'X-API-Key': DEMO_API_KEY
+        }
+      });
       const data = await res.json();
       setFacilities(data.results || []);
       setShowSuggestions(true);
@@ -69,7 +77,11 @@ export default function DemoPage() {
 
     try {
       // Fetch historical data
-      const histRes = await fetch(`https://api.healthcaredata.io/hospitals/${facility.ccn}/history`);
+      const histRes = await fetch(`https://api.healthcaredata.io/hospitals/${facility.ccn}/history`, {
+        headers: {
+          'X-API-Key': DEMO_API_KEY
+        }
+      });
       const histData = await histRes.json();
 
       if (histData.historical_data && Array.isArray(histData.historical_data)) {
