@@ -13,7 +13,7 @@ interface Facility {
 }
 
 interface HistoricalData {
-  date: string;
+  quarter: string;
   overall_rating: number;
 }
 
