@@ -387,11 +387,11 @@ export default function DemoPage() {
               </h3>
               <div className="space-y-4">
                 {[
-                  { name: 'Mortality', score: selectedFacility.overall_rating },
-                  { name: 'Safety of Care', score: selectedFacility.overall_rating },
-                  { name: 'Readmission', score: selectedFacility.overall_rating - 0.5 },
-                  { name: 'Patient Experience', score: selectedFacility.overall_rating + 0.3 },
-                  { name: 'Timely Care', score: selectedFacility.overall_rating - 0.2 },
+                  { name: 'Mortality', score: selectedFacility.overall_rating || 3 },
+                  { name: 'Safety of Care', score: selectedFacility.overall_rating || 3 },
+                  { name: 'Readmission', score: (selectedFacility.overall_rating || 3) - 0.5 },
+                  { name: 'Patient Experience', score: (selectedFacility.overall_rating || 3) + 0.3 },
+                  { name: 'Timely Care', score: (selectedFacility.overall_rating || 3) - 0.2 },
                 ].map((domain, idx) => {
                   const score = Math.max(1, Math.min(5, domain.score));
                   const { label, color } = getDomainScore(score);

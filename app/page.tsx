@@ -213,7 +213,7 @@ export default function DemoPage() {
                         [...Array(5)].map((_, i) => (
                           <span
                             key={i}
-                            className={i < facility.overall_rating ? 'text-amber-400' : 'text-gray-600'}
+                            className={i < (facility.overall_rating || 0) ? 'text-amber-400' : 'text-gray-600'}
                           >
                             ★
                           </span>
@@ -274,7 +274,7 @@ export default function DemoPage() {
                       {[...Array(5)].map((_, i) => (
                         <span
                           key={i}
-                          className={`text-4xl ${i < selectedFacility.overall_rating ? 'text-amber-400' : 'text-gray-700'}`}
+                          className={`text-4xl ${i < (selectedFacility.overall_rating || 0) ? 'text-amber-400' : 'text-gray-700'}`}
                         >
                           ★
                         </span>
@@ -387,11 +387,11 @@ export default function DemoPage() {
               </h3>
               <div className="space-y-4">
                 {[
-                  { name: 'Mortality', score: selectedFacility.overall_rating },
-                  { name: 'Safety of Care', score: selectedFacility.overall_rating },
-                  { name: 'Readmission', score: selectedFacility.overall_rating - 0.5 },
-                  { name: 'Patient Experience', score: selectedFacility.overall_rating + 0.3 },
-                  { name: 'Timely Care', score: selectedFacility.overall_rating - 0.2 },
+                  { name: 'Mortality', score: selectedFacility.overall_rating || 3 },
+                  { name: 'Safety of Care', score: selectedFacility.overall_rating || 3 },
+                  { name: 'Readmission', score: (selectedFacility.overall_rating || 3) - 0.5 },
+                  { name: 'Patient Experience', score: (selectedFacility.overall_rating || 3) + 0.3 },
+                  { name: 'Timely Care', score: (selectedFacility.overall_rating || 3) - 0.2 },
                 ].map((domain, idx) => {
                   const score = Math.max(1, Math.min(5, domain.score));
                   const { label, color } = getDomainScore(score);
