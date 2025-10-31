@@ -19,7 +19,7 @@ interface HistoricalData {
 
 // Demo API key - visible in code, for demo purposes only
 // Sign up at https://api.healthcaredata.io/signup for your own key
-const DEMO_API_KEY = 'cms_8quGKAorYOMJMVNGmwHFZusoRuf8IwXHo6xOuiP0zT0';
+const DEMO_API_KEY = 'cms_Poid4Iu-hM1Xxgme8nBqZtY8xIhu4SbyZ-nBv6A-414';
 
 export default function DemoPage() {
   const [searchState, setSearchState] = useState('UT');
